@@ -14,9 +14,30 @@ const User = mongoose.model("User", {
 const app = express();
 app.use(express.json());
 
-function userExists(username, password) {
-  // should check in the database
-}
+app.post("/signup", async function (req, res) {
+  try {
+    const { username, password, name } = req.body;
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      const newUser = new User({ name, username, password });
+      await newUser.save();
+      return res.json({
+        message: "User created",
+        user: newUser,
+      });
+    }
+
+    return res.status(403).json({
+      message: "User already exists",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
 
 app.post("/signin", async function (req, res) {
   const username = req.body.username;
@@ -46,5 +67,7 @@ app.get("/users", function (req, res) {
     });
   }
 });
+
+app.get("/delete/:username", function (req, res) {});
 
 app.listen(3000);
