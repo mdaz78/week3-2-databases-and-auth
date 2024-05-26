@@ -1,47 +1,34 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const jwtPassword = "123456"; // this should be a secret key and not be added to git
+const mongoose = require("mongoose");
+const jwtPassword = "123456";
+
+mongoose.connect("your_mongo_url");
+
+const User = mongoose.model("User", {
+  name: String,
+  username: String,
+  password: String,
+});
 
 const app = express();
-
 app.use(express.json());
 
-const ALL_USERS = [
-  {
-    username: "harkirat@gmail.com",
-    password: "123",
-    name: "harkirat singh",
-  },
-  {
-    username: "raman@gmail.com",
-    password: "123321",
-    name: "Raman singh",
-  },
-  {
-    username: "priya@gmail.com",
-    password: "123321",
-    name: "Priya kumari",
-  },
-];
-
 function userExists(username, password) {
-  const user = ALL_USERS.find(
-    (existingUser) => existingUser.username === username
-  );
-  return user ? true : false;
+  // should check in the database
 }
 
-app.post("/signin", function (req, res) {
+app.post("/signin", async function (req, res) {
   const username = req.body.username;
   const password = req.body.password;
 
   if (!userExists(username, password)) {
     return res.status(403).json({
-      msg: "User doesn't exist in our in memory db",
+      msg: "User doesnt exist in our in memory db",
     });
   }
 
-  var token = jwt.sign({ username: username }, jwtPassword);
+  var token = jwt.sign({ username: username }, "shhhhh");
   return res.json({
     token,
   });
@@ -52,12 +39,7 @@ app.get("/users", function (req, res) {
   try {
     const decoded = jwt.verify(token, jwtPassword);
     const username = decoded.username;
-
-    const users = ALL_USERS.filter((user) => user.username !== username);
-
-    return res.json({
-      users,
-    });
+    // return a list of users other than this username from the database
   } catch (err) {
     return res.status(403).json({
       msg: "Invalid token",
